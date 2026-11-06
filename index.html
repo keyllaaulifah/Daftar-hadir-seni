@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi Ekskul Seni - Pro Ultra 4.0</title>
+<meta name="theme-color" content="#0f172a">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3652/3652191.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  .absen-btn:disabled .btn-text { display: none; }
+  .absen-btn:disabled .btn-loader { display: inline-flex !important; }
+  #appContainer, #appContainer * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; filter: none !important; }
+</style>
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>regs.forEach(r=>r.unregister())); }
+if(window.caches) caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));
+</script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between selection:bg-slate-900 selection:text-white pb-12">
+<div id="appContainer" class="max-w-md mx-auto w-full min-h-screen bg-white shadow-2xl flex flex-col justify-between relative border-x border-slate-200 bg-cover bg-center bg-no-repeat">
+  <div class="pb-16 bg-transparent min-h-full flex flex-col justify-between">
+    <div>
+      <div class="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 text-white p-5 rounded-b-[28px] shadow-lg relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full pointer-events-none"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between">
+            <h1 class="text-xl font-extrabold tracking-wide flex items-center gap-2">🎨 Absensi Ekskul Seni</h1>
+            <span class="text-[10px] bg-white/25 px-2.5 py-0.5 rounded-full font-semibold border border-white/30">PRO v4.0 ONLINE</span>
+          </div>
+          <p class="text-xs opacity-90 font-light mt-0.5 flex items-center gap-2">
+            <span id="gpsStatus" class="bg-black/20 px-2 py-0.5 rounded-full text-[10px] text-white"><i class="fa-solid fa-location-dot"></i> Mencari GPS...</span>
+            <span id="syncStatus" class="bg-emerald-400/20 px-2 py-0.5 rounded-full text-[10px]">🟢 Online Sinkron</span>
+          </p>
+          <div class="mt-4 flex gap-2 p-1 bg-black/20 rounded-full border border-white/20">
+            <button onclick="showPage('siswa')" id="btnSiswa" class="flex-1 bg-white text-slate-900 px-4 py-2 rounded-full text-xs font-bold shadow-md flex items-center justify-center gap-1.5"><i class="fa-solid fa-user-pen"></i> Siswa</button>
+            <button onclick="checkAdminAccess()" id="btnAdmin" class="flex-1 bg-transparent text-white px-4 py-2 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5"><i class="fa-solid fa-user-shield"></i> Admin Pembina</button>
+          </div>
+        </div>
+      </div>
+      <div id="customAlert" class="hidden mx-5 mt-4 p-0 rounded-2xl text-xs font-semibold flex flex-col shadow-sm border overflow-hidden">
+        <div class="p-3.5 flex items-center justify-between"><span id="customAlertMsg">Notification</span><button onclick="closeAlert()" class="font-bold">✕</button></div>
+        <div id="alertProgress" class="h-1 bg-slate-900 w-full"></div>
+      </div>
+      <div id="pageSiswa" class="p-5 space-y-4">
+        <div class="bg-white/90 border border-slate-200 p-4 rounded-2xl shadow-sm space-y-3">
+          <div>
+            <label class="text-[11px] font-bold tracking-wider">👤 PILIH NAMA KAMU</label>
+            <select id="pilihSiswa" class="w-full p-3 rounded-xl border border-slate-200 bg-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 mt-1"></select>
+          </div>
+          <div>
+            <label class="text-[11px] font-bold tracking-wider">🏫 KELAS</label>
+            <input type="text" id="inputKelas" placeholder="Cth: XI RPL 1" class="w-full p-3 rounded-xl border border-slate-200 bg-white font-semibold text-sm mt-1">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold tracking-wider">🎭 JENIS EKSKUL SENI</label>
+            <select id="pilihEkskul" class="w-full p-3 rounded-xl border border-slate-200 bg-white text-sm font-medium mt-1"></select>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-center"><div class="text-2xl font-black text-emerald-600" id="countHadir">0</div><div class="text-[9px] font-bold">HADIR</div></div>
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-center"><div class="text-2xl font-black text-amber-600" id="countIzin">0</div><div class="text-[9px] font-bold">IZIN/SAKIT</div></div>
+          <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 text-center"><div class="text-2xl font-black text-rose-600" id="countAlfa">0</div><div class="text-[9px] font-bold">ALFA</div></div>
+        </div>
+        <div class="text-center py-2 bg-slate-900 text-white rounded-2xl">
+          <div class="text-3xl font-black font-mono" id="jamReal">00:00:00</div>
+          <div class="text-[11px]" id="tglReal">-</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <button onclick="absen('Hadir')" class="absen-btn bg-emerald-600 text-white p-3.5 rounded-2xl font-bold text-sm shadow-md active:scale-95"><span class="btn-text">✅ HADIR</span><span class="btn-loader hidden">⏳</span></button>
+          <button onclick="absen('Izin')" class="absen-btn bg-amber-600 text-white p-3.5 rounded-2xl font-bold text-sm shadow-md active:scale-95"><span class="btn-text">📝 IZIN</span><span class="btn-loader hidden">⏳</span></button>
+          <button onclick="absen('Sakit')" class="absen-btn bg-blue-600 text-white p-3.5 rounded-2xl font-bold text-sm shadow-md active:scale-95"><span class="btn-text">🤒 SAKIT</span><span class="btn-loader hidden">⏳</span></button>
+          <button onclick="absen('Alfa')" class="absen-btn bg-rose-600 text-white p-3.5 rounded-2xl font-bold text-sm shadow-md active:scale-95"><span class="btn-text">❌ ALFA</span><span class="btn-loader hidden">⏳</span></button>
+        </div>
+        <div id="riwayatPribadi" class="mt-4 pt-2 border-t"></div>
+      </div>
+      <div id="pageAdmin" class="p-5 hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-base">📋 Rekap Admin</h2>
+          <button onclick="adminLogout()" class="text-[11px] bg-rose-100 text-rose-700 font-bold px-3 py-1 rounded-full">Keluar Admin</button>
+        </div>
+        <div class="flex gap-1 p-1 bg-slate-100 rounded-xl overflow-x-auto custom-scrollbar text-xs font-bold">
+          <button id="btnTab-rekap" onclick="switchAdminTab('rekap')" class="flex-1 py-2 px-3 rounded-lg bg-white shadow-sm whitespace-nowrap">Rekap</button>
+          <button id="btnTab-siswa" onclick="switchAdminTab('siswa')" class="flex-1 py-2 px-3 rounded-lg whitespace-nowrap">Siswa</button>
+          <button id="btnTab-ekskul" onclick="switchAdminTab('ekskul')" class="flex-1 py-2 px-3 rounded-lg whitespace-nowrap">Ekskul</button>
+          <button id="btnTab-jam" onclick="switchAdminTab('jam')" class="flex-1 py-2 px-3 rounded-lg whitespace-nowrap">Jam & GPS</button>
+          <button id="btnTab-pengaturan" onclick="switchAdminTab('pengaturan')" class="flex-1 py-2 px-3 rounded-lg whitespace-nowrap">Sistem</button>
+        </div>
+        <div id="tabContentRekap" class="space-y-4">
+          <div class="bg-slate-900 text-white p-4 rounded-2xl grid grid-cols-3 gap-2 text-center">
+            <div><div class="text-2xl font-black text-emerald-400" id="totalHadirAll">0</div><div class="text-[9px] font-bold">TOTAL HADIR</div></div>
+            <div class="border-x border-slate-700"><div class="text-2xl font-black text-amber-400" id="totalIzinAll">0</div><div class="text-[9px] font-bold">IZIN/SAKIT</div></div>
+            <div><div class="text-2xl font-black text-rose-400" id="totalAlfaAll">0</div><div class="text-[9px] font-bold">ALFA</div></div>
+          </div>
+          <div class="flex gap-2">
+            <input type="date" id="filterTgl" class="flex-1 p-2.5 border rounded-xl text-xs font-semibold bg-white">
+            <button onclick="exportExcel()" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold">Excel</button>
+          </div>
+          <div class="bg-white border p-3.5 rounded-2xl space-y-3">
+            <label class="text-[11px] font-bold uppercase">📸 Dokumentasi Foto</label>
+            <input type="file" id="uploadFotoDok" accept="image/*" class="hidden" onchange="uploadDokumentasi(event)">
+            <button onclick="document.getElementById('uploadFotoDok').click()" class="w-full bg-slate-900 text-white p-2.5 rounded-xl text-xs font-bold">Upload Foto</button>
+            <div id="galeriDokumentasi" class="grid grid-cols-2 gap-2"></div>
+          </div>
+          <div class="bg-white border p-3.5 rounded-2xl space-y-2">
+            <label class="text-[10px] font-bold uppercase">Nomor WA Pembina</label>
+            <input id="waAdmin" type="text" placeholder="628xxx" class="w-full p-2.5 border rounded-xl text-xs font-semibold" value="6281234567890">
+            <button onclick="kirimRekapWA()" class="w-full bg-slate-900 text-white p-3.5 rounded-xl font-bold text-xs">📲 KIRIM REKAP KE WHATSAPP</button>
+          </div>
+          <div id="tabelAdmin" class="space-y-4"></div>
+        </div>
+        <div id="tabContentSiswa" class="hidden space-y-4">
+          <div class="bg-white border p-3.5 rounded-xl space-y-2">
+            <label class="text-[11px] font-bold">Tambah Siswa Baru</label>
+            <div class="flex gap-2"><input id="newNama" placeholder="Nama siswa baru..." class="flex-1 p-2 border rounded-lg text-xs"><button onclick="tambahSiswa()" class="bg-slate-900 text-white px-3.5 py-2 rounded-lg text-xs font-bold">+ Tambah</button></div>
+          </div>
+          <div class="bg-white border p-3.5 rounded-xl"><label class="text-[11px] font-bold">Kelola Siswa</label><div id="listKelolaSiswa" class="max-h-60 overflow-y-auto space-y-1.5 mt-2"></div></div>
+        </div>
+        <div id="tabContentEkskul" class="hidden space-y-4">
+          <div class="bg-white border p-3.5 rounded-xl space-y-2">
+            <label class="text-[11px] font-bold">Tambah Ekskul</label>
+            <div class="flex gap-2"><input id="newEkskul" placeholder="Nama ekskul baru..." class="flex-1 p-2 border rounded-lg text-xs"><button onclick="tambahEkskul()" class="bg-slate-900 text-white px-3.5 py-2 rounded-lg text-xs font-bold">+ Tambah</button></div>
+          </div>
+          <div class="bg-white border p-3.5 rounded-xl"><label class="text-[11px] font-bold">Kelola Ekskul</label><div id="listKelolaEkskul" class="max-h-60 overflow-y-auto space-y-1.5 mt-2"></div></div>
+        </div>
+        <div id="tabContentJam" class="hidden space-y-4">
+          <div class="bg-white border p-3.5 rounded-xl space-y-3">
+            <label class="text-[11px] font-bold">⏰ Atur Jam Absen</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div><span class="text-[10px] font-semibold">Jam Buka</span><input id="jamBuka" type="time" class="w-full p-2 border rounded-lg text-xs font-bold"></div>
+              <div><span class="text-[10px] font-semibold">Jam Tutup</span><input id="jamTutup" type="time" class="w-full p-2 border rounded-lg text-xs font-bold"></div>
+            </div>
+            <div class="flex gap-2 items-center"><label class="flex items-center gap-1.5 text-[11px]"><input type="checkbox" id="aktifkanBatas"> Aktifkan batas jam</label><button onclick="simpanJamBatas()" class="ml-auto bg-slate-900 text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold">Simpan Jam</button></div>
+          </div>
+          <div class="bg-white border p-3.5 rounded-xl space-y-3">
+            <label class="text-[11px] font-bold">📍 Atur GPS</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div><span class="text-[10px]">Latitude</span><input id="inputLat" type="text" placeholder="-0.9145" class="w-full p-2 border rounded-lg text-xs font-bold"></div>
+              <div><span class="text-[10px]">Longitude</span><input id="inputLng" type="text" placeholder="100.3522" class="w-full p-2 border rounded-lg text-xs font-bold"></div>
+            </div>
+            <div><span class="text-[10px]">Radius (Meter)</span><input id="inputRadius" type="number" placeholder="100" class="w-full p-2 border rounded-lg text-xs font-bold mt-1"></div>
+            <div class="flex gap-2"><button onclick="ambilLokasiAdmin()" class="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold">Ambil GPS Saat Ini</button><button onclick="simpanGpsConfig()" class="ml-auto bg-slate-900 text-white px-3.5 py-1.5 rounded-lg text-[11px] font-bold">Simpan GPS</button></div>
+            <label class="flex items-center gap-1.5 text-[11px]"><input type="checkbox" id="aktifkanGps"> Wajibkan Validasi GPS</label>
+          </div>
+        </div>
+        <div id="tabContentPengaturan" class="hidden space-y-4">
+          <div class="bg-white border p-3.5 rounded-xl space-y-2">
+            <label class="text-[11px] font-bold">🖼️ Background</label>
+            <input type="file" id="inputBgGaleri" accept="image/*" class="hidden" onchange="simpanBackgroundGaleri(event)">
+            <button onclick="document.getElementById('inputBgGaleri').click()" class="w-full bg-slate-900 text-white p-2.5 rounded-lg text-xs font-bold">Pilih Gambar</button>
+            <button onclick="hapusBackgroundUrl()" class="w-full bg-rose-100 text-rose-700 p-2.5 rounded-lg text-xs font-bold">Reset Background</button>
+          </div>
+          <div class="bg-white border p-3.5 rounded-xl space-y-2">
+            <label class="text-[11px] font-bold">Backup & Reset</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="backupData()" class="bg-slate-800 text-white p-2 rounded-lg text-[11px] font-bold">Backup</button>
+              <button onclick="document.getElementById('restoreFile').click()" class="bg-slate-600 text-white p-2 rounded-lg text-[11px] font-bold">Restore</button>
+              <button onclick="confirmReset()" class="bg-rose-500 text-white p-2 rounded-lg text-[11px] font-bold">Reset</button>
+            </div>
+            <input type="file" id="restoreFile" accept=".json" class="hidden" onchange="restoreData(event)">
+          </div>
+          <div class="bg-white border p-3.5 rounded-xl space-y-2">
+            <label class="text-[11px] font-bold">Ubah Sandi Admin</label>
+            <input id="oldPin" type="password" placeholder="Sandi Lama" class="w-full p-2 border rounded-lg text-xs">
+            <input id="newPin" type="password" placeholder="Sandi Baru" class="w-full p-2 border rounded-lg text-xs">
+            <button onclick="ubahSandiAdmin()" class="w-full bg-slate-900 text-white p-2 rounded-lg text-xs font-bold">Simpan Sandi Baru</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="absolute bottom-0 left-0 right-0 text-center py-2.5 text-[10px] font-semibold border-t bg-white">Absensi Digital Ekskul Seni © 2026 • ONLINE</footer>
+  </div>
+</div>
+<div id="modalConfirm" class="fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 hidden">
+  <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 space-y-4 text-center">
+    <h3 id="confirmTitle" class="font-bold text-sm">Yakin?</h3>
+    <p id="confirmMsg" class="text-[11px] text-slate-600">Pesan</p>
+    <div class="grid grid-cols-2 gap-2"><button onclick="closeConfirm(false)" class="bg-slate-100 py-2.5 rounded-xl text-xs font-bold">Batal</button><button id="confirmOkBtn" onclick="closeConfirm(true)" class="bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold">Ya</button></div>
+  </div>
+</div>
+<div id="modalLoginAdmin" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 space-y-4">
+    <div class="text-center"><h3 class="font-bold text-sm">Login Admin</h3></div>
+    <input id="inputPin" type="password" placeholder="Masukkan Sandi" class="w-full p-3 border rounded-xl text-xs text-center font-bold tracking-widest bg-slate-50">
+    <div class="grid grid-cols-2 gap-2"><button onclick="closeLoginModal()" class="bg-slate-100 py-2.5 rounded-xl text-xs font-bold">Batal</button><button onclick="verifyAdminLogin()" class="bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold">Masuk</button></div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
